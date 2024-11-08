@@ -262,6 +262,7 @@
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
+                video.style.transform = 'scaleX(-1)';
             })
             .catch(err => console.error("Error accessing the camera:", err));
 

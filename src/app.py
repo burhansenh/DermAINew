@@ -34,9 +34,12 @@ def detect_face_api():
         # Convert the uploaded file to a format usable by OpenCV
         image = np.frombuffer(file.read(), np.uint8)
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-
+        
         # Process the image with the facial features detection function
-        result_image = detect_facial_features(image)  # Update this line to match your function name
+        result_image = detect_facial_features(image)
+        
+        # Invert the final result
+        result_image = cv2.flip(result_image, 1)  # 1 for horizontal flip
         
         # Encode the processed image as a JPEG in memory
         _, buffer = cv2.imencode('.jpg', result_image)
