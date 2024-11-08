@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Detection App</title>
+    <style>
+        body { max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; }
+        #video, #canvas { margin: 20px 0; border: 1px solid #ccc; }
+        button { padding: 10px 20px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Face Detection App</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480" style="display:none"></canvas>
+    <div>
+        <button id="capture">Capture Photo</button>
+    </div>
+    <div id="result">
+        <img id="processed-image" style="display:none; max-width: 640px;">
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('capture');
+        const processedImage = document.getElementById('processed-image');
+
+        // Get camera access
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => console.error(err));
+
+        captureButton.addEventListener('click', () => {
+            // Draw video frame to canvas
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to blob and send to server
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('image', blob, 'capture.jpg');
+
+                fetch('/detect_face', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    processedImage.src = 'data:image/jpeg;base64,' + data.processed_image;
+                    processedImage.style.display = 'block';
+                })
+                .catch(err => console.error(err));
+            }, 'image/jpeg');
+        });
+    </script>
+</body>
+</html>

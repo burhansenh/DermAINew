@@ -1,16 +1,22 @@
 # app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import cv2
 import numpy as np
 import base64
 from face_detection import detect_face  # Ensure this matches your setup
 import os
 
-app = Flask(__name__)
+# Change the template folder path
+template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+app = Flask(__name__, template_folder=template_dir)
 
 # Define the output directory for the processed image
-OUTPUT_DIR = "output"
+OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'output'))
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/detect_face', methods=['POST'])
 def detect_face_api():
