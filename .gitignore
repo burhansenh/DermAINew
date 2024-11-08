@@ -1,39 +1,39 @@
-# # Ignore virtual environment
-# venv/
+# Ignore virtual environment
+venv/
 
-# # Ignore Python cache and compiled files
-# _pycache_/
-# *.py[cod]
-# *.pyo
-# *.pyd
+# Ignore Python cache and compiled files
+_pycache_/
+*.py[cod]
+*.pyo
+*.pyd
 
-# # Ignore Jupyter Notebook checkpoints
-# .ipynb_checkpoints/
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
 
-# # Ignore dataset files (if you’re using large datasets locally)
-# data/
-# output/
-# notebooks/
-# response/
+# Ignore dataset files (if you’re using large datasets locally)
+data/
+output/
+notebooks/
+response/
 
 
-# # Ignore model checkpoints and trained models (can be large files)
-# models/
+# Ignore model checkpoints and trained models (can be large files)
+models/
 
-# # Ignore environment configuration files
-# .env
+# Ignore environment configuration files
+.env
 
-# # Ignore IDE and editor config files
-# .vscode/
-# .idea/
+# Ignore IDE and editor config files
+.vscode/
+.idea/
 
-# # Ignore log files
-# *.log
+# Ignore log files
+*.log
 
-# # Ignore temporary files created by the OS
-# .DS_Store
-# Thumbs.db
+# Ignore temporary files created by the OS
+.DS_Store
+Thumbs.db
 
-# # Ignore package manager lock files (if you don’t want them tracked)
-# yarn.lock
-# package-lock.json
+# Ignore package manager lock files (if you don’t want them tracked)
+yarn.lock
+package-lock.json
