@@ -37,17 +37,14 @@ def detect_face_api():
             return jsonify({"error": "Failed to decode image"}), 400
 
         # Process image
-        result_image, spot_data = detect_skin_irregularities(image)
+        processed_image, spot_data, _, _ = detect_skin_irregularities(image)
         
-        # Ensure the result is properly encoded
-        success, img_encoded = cv2.imencode('.jpg', result_image)
-        if not success:
-            return jsonify({"error": "Failed to encode result image"}), 500
-            
-        img_base64 = base64.b64encode(img_encoded).decode('utf-8')
-        
+        # Convert processed image to base64
+        _, buffer = cv2.imencode('.jpg', processed_image)
+        processed_image_b64 = base64.b64encode(buffer).decode('utf-8')
+
         return jsonify({
-            "processed_image": img_base64,
+            "processed_image": processed_image_b64,
             "spots": spot_data,
             "success": True
         })

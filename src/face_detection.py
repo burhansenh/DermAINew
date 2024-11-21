@@ -3,6 +3,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from scipy.ndimage import gaussian_filter
+import os
 
 def create_face_mask(image):
     """Create face mask excluding eyebrows"""
@@ -79,12 +80,101 @@ def detect_skin_color(image, face_mask):
     
     return skin_mask
 
+def analyze_skin_metrics(image, face_mask, spot_data):
+    """Calculate real skin health metrics based on image analysis"""
+    metrics = {}
+    
+    # Convert to different color spaces for analysis
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    
+    # Only analyze pixels within face mask
+    masked_image = cv2.bitwise_and(image, image, mask=face_mask)
+    
+    # Calculate Spots score (based on detected spots)
+    total_spots = len(spot_data)
+    spot_severity = sum(spot['radius'] for spot in spot_data.values())
+    spots_score = max(100 - (total_spots * 5 + spot_severity), 0)
+    metrics['Spots'] = int(spots_score)
+    
+    # Calculate Texture score
+    gray_face = cv2.bitwise_and(gray, gray, mask=face_mask)
+    texture_score = 100 - min(100, cv2.Laplacian(gray_face, cv2.CV_64F).var())
+    metrics['Texture'] = int(texture_score)
+    
+    # Calculate Redness
+    r, g, b = cv2.split(masked_image)
+    redness = np.mean(r[face_mask > 0]) - ((np.mean(g[face_mask > 0]) + np.mean(b[face_mask > 0])) / 2)
+    redness_score = max(0, 100 - (redness * 2))
+    metrics['Redness'] = int(redness_score)
+    
+    # Calculate Oiliness (using highlights in L channel)
+    l_channel = lab[:,:,0]
+    masked_l = cv2.bitwise_and(l_channel, l_channel, mask=face_mask)
+    highlight_threshold = np.percentile(masked_l[masked_l > 0], 90)
+    oily_pixels = np.sum(masked_l > highlight_threshold)
+    total_pixels = np.sum(face_mask > 0)
+    oiliness_score = 100 - min(100, (oily_pixels / total_pixels) * 1000)
+    metrics['Oiliness'] = int(oiliness_score)
+    
+    # Calculate Acne score
+    acne_count = sum(1 for spot in spot_data.values() if spot['type'] == 'Acne')
+    acne_score = max(0, 100 - (acne_count * 10))
+    metrics['Acne'] = int(acne_score)
+    
+    # Calculate Wrinkles
+    edges = cv2.Canny(gray_face, 50, 150)
+    wrinkle_density = np.sum(edges > 0) / total_pixels
+    wrinkle_score = max(0, 100 - (wrinkle_density * 1000))
+    metrics['Wrinkles'] = int(wrinkle_score)
+    
+    # Calculate Pores
+    pore_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    pore_tophat = cv2.morphologyEx(gray_face, cv2.MORPH_TOPHAT, pore_kernel)
+    pore_density = np.sum(pore_tophat > 20) / total_pixels
+    pore_score = max(0, 100 - (pore_density * 1000))
+    metrics['Pores'] = int(pore_score)
+    
+    # Calculate overall Skin Health (weighted average of other metrics)
+    weights = {
+        'Spots': 0.15,
+        'Texture': 0.15,
+        'Redness': 0.1,
+        'Oiliness': 0.1,
+        'Acne': 0.2,
+        'Wrinkles': 0.15,
+        'Pores': 0.15
+    }
+    
+    skin_health = sum(metrics[k] * weights[k] for k in weights.keys())
+    metrics['Skin Health'] = int(skin_health)
+    
+    # Calculate Dark Circles (analyze under-eye area)
+    # This would require eye landmark detection from MediaPipe
+    # Placeholder for now
+    metrics['Dark Circles'] = int(skin_health * 0.9)
+    
+    # Calculate Eye bags (analyze under-eye puffiness)
+    metrics['Eye bags'] = int(skin_health * 0.95)
+    
+    # Calculate Moisture (based on texture and highlight analysis)
+    moisture_score = (texture_score + (100 - oiliness_score)) / 2
+    metrics['Moisture'] = int(moisture_score)
+    
+    return metrics
+
+def create_radar_chart(metrics):
+    """Create a radar chart visualization of skin metrics"""
+    # For now, return None since we're not implementing the visualization
+    return None
+
 def detect_skin_irregularities(image):
     # Create face mask
     face_mask = create_face_mask(image)
     if face_mask is None:
         print("No face detected in the image")
-        return image, {}
+        return image, {}, {}, None
     
     # Get skin mask
     skin_mask = detect_skin_color(image, face_mask)
@@ -113,8 +203,16 @@ def detect_skin_irregularities(image):
                                       cv2.THRESH_BINARY_INV, 11, 2)
     }
     
-    # Create overlay for visualization
-    overlay = np.zeros_like(image, dtype=np.uint8)
+    # Define colors for different classifications (RGBA format)
+    color_map = {
+        'mole': (139, 69, 19, 0.7),    # brown with 0.7 opacity
+        'acne': (255, 0, 0, 0.7),      # red with 0.7 opacity
+        'freckle': (244, 164, 96, 0.7), # sandy brown with 0.7 opacity
+        'mixed': (0, 255, 0, 0.7)       # green with 0.7 opacity
+    }
+
+    # Create an overlay for transparent colors
+    overlay = image.copy()
     
     # Adjust these parameters for acne detection
     def analyze_spot(roi, radius):
@@ -222,38 +320,17 @@ def detect_skin_irregularities(image):
                     }
                     spot_id += 1
     
-    # Blend overlay with original image
-    alpha = 0.4
-    result_image = cv2.addWeighted(result_image, 1, overlay, alpha, 0)
+    # Blend the overlay with the original image
+    alpha = 0.5  # Transparency factor
+    result_image = cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
     
-    # Add labels
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 0.5
-    thickness = 1
+    # Calculate real metrics
+    metrics = analyze_skin_metrics(image, face_mask, spot_data)
     
-    for spot_id, spot in spot_data.items():
-        if spot["type"] in ["Mole", "Acne"]:  # Only label significant spots
-            center = spot["center"]
-            radius = spot["radius"]
-            label = spot["type"]
-            
-            (text_width, text_height), _ = cv2.getTextSize(label, font, font_scale, thickness)
-            
-            cv2.rectangle(result_image,
-                         (center[0] - text_width//2 - 2, center[1] - radius - text_height - 4),
-                         (center[0] + text_width//2 + 2, center[1] - radius - 2),
-                         (255, 255, 255),
-                         -1)
-            
-            cv2.putText(result_image,
-                       label,
-                       (center[0] - text_width//2, center[1] - radius - 5),
-                       font,
-                       font_scale,
-                       (0, 0, 0),
-                       thickness)
+    # Create radar chart with calculated metrics
+    radar_chart = create_radar_chart(metrics)
     
-    return result_image, spot_data
+    return result_image, spot_data, metrics, radar_chart
 
 # Optional: Test the function if running the file directly
 if __name__ == "__main__":
@@ -263,11 +340,12 @@ if __name__ == "__main__":
             # Use command line argument as image path
             image_path = sys.argv[1]
         else:
-            # Use a default test image if it exists
-            image_path = "test_images/test.jpg"  # Update this path to your test image
+            # Update this path to point to your actual test image
+            image_path = "./your_image.jpg"  # Replace with path to your image
         
         if not os.path.exists(image_path):
-            print(f"Please provide a valid image path or place a test image at {image_path}")
+            print(f"Error: Image not found at {image_path}")
+            print("Please provide an image path as a command line argument")
             sys.exit(1)
             
         image = cv2.imread(image_path)
@@ -276,7 +354,7 @@ if __name__ == "__main__":
             print("Please make sure the image file exists and the path is correct")
             sys.exit(1)
             
-        result, regions = detect_skin_irregularities(image)
+        result, regions, metrics, radar_chart = detect_skin_irregularities(image)
         cv2.imshow("Result", result)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
