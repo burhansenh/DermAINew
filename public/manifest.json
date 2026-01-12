@@ -1,0 +1,16 @@
+{
+    "name": "Dermalyze - AI Skin Analysis",
+    "short_name": "Dermalyze",
+    "description": "AI-powered skin analysis with personalized skincare recommendations",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#8B9D83",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/x-icon"
+        }
+    ]
+}
