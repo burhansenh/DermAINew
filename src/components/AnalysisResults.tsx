@@ -130,26 +130,36 @@ export function AnalysisResults({ results, imageUrl, onReset }: AnalysisResultsP
   }, [topConcerns]);
 
   return (
-    <div className="grid md:grid-cols-[400px,1fr] gap-6 animate-fade-in">
+    <div className="grid md:grid-cols-[400px,1fr] gap-8 animate-fade-in">
       {/* Left: Image */}
       <div className="space-y-4">
-        <img
-          src={imageUrl}
-          alt="Analysis"
-          className="w-full rounded-lg border border-border"
-        />
-        <div className="text-center p-4 rounded-lg bg-secondary/50">
-          <p className="text-sm text-muted-foreground mb-1">Overall Score</p>
-          <div className="flex items-center justify-center gap-2">
-            <span className={`text-4xl font-display font-bold ${getScoreColor(overallScore)}`}>
+        <div className="relative group">
+          <img
+            src={imageUrl}
+            alt="Analysis"
+            className="w-full rounded-xl border-2 border-border shadow-lg transition-transform group-hover:scale-[1.02]"
+          />
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
+
+        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground mb-2">Overall Skin Health</p>
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <span className={`text-5xl font-display font-bold ${getScoreColor(overallScore)}`}>
               {overallScore}
             </span>
-            <span className="text-xl text-muted-foreground">/100</span>
+            <span className="text-2xl text-muted-foreground font-medium">/100</span>
           </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            {overallScore >= 80 && "Excellent condition"}
+            {overallScore >= 60 && overallScore < 80 && "Good with room to improve"}
+            {overallScore < 60 && "Needs attention"}
+          </p>
         </div>
+
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full h-11 font-medium hover:bg-accent/10 hover:border-accent transition-all"
           onClick={onReset}
         >
           Analyze Another Photo
@@ -160,25 +170,28 @@ export function AnalysisResults({ results, imageUrl, onReset }: AnalysisResultsP
       <div className="space-y-6">
         {/* Scores Grid */}
         <div>
-          <h3 className="font-display text-lg mb-3">Skin Analysis</h3>
-          <div className="grid grid-cols-2 gap-2">
+          <h3 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
+            <div className="w-1 h-5 bg-accent rounded-full" />
+            Detailed Analysis
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
             {sortedResults.map((concern) => {
               const info = CONCERN_LABELS[concern.type] || { label: concern.type, description: "" };
               const status = getScoreStatus(concern.ui_score);
               const StatusIcon = status.icon;
 
               return (
-                <div key={concern.type} className="p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1.5">
-                      <StatusIcon className={`w-3.5 h-3.5 ${getScoreColor(concern.ui_score)}`} />
-                      <span className="text-sm font-medium">{info.label}</span>
+                <div key={concern.type} className="p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border hover:border-accent/30 transition-all duration-200 group">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <StatusIcon className={`w-4 h-4 ${getScoreColor(concern.ui_score)} transition-transform group-hover:scale-110`} />
+                      <span className="text-sm font-semibold">{info.label}</span>
                     </div>
-                    <span className={`text-sm font-bold ${getScoreColor(concern.ui_score)}`}>
+                    <span className={`text-lg font-bold ${getScoreColor(concern.ui_score)}`}>
                       {concern.ui_score}
                     </span>
                   </div>
-                  <Progress value={concern.ui_score} className="h-1.5" />
+                  <Progress value={concern.ui_score} className="h-2" />
                 </div>
               );
             })}
@@ -188,18 +201,21 @@ export function AnalysisResults({ results, imageUrl, onReset }: AnalysisResultsP
         {/* Product Recommendations */}
         {recommendedProducts.length > 0 && (
           <div>
-            <h3 className="font-display text-lg mb-3">Recommended Products</h3>
-            <div className="grid gap-2">
+            <h3 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
+              <div className="w-1 h-5 bg-accent rounded-full" />
+              Recommended Products
+            </h3>
+            <div className="grid gap-3">
               {recommendedProducts.map((product, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border hover:border-accent transition-colors"
+                  className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-accent/50 bg-card hover:shadow-md transition-all duration-200 group"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{product.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-sm font-semibold truncate group-hover:text-accent transition-colors">{product.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground">{product.brand}</span>
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-accent/10 text-accent">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">
                         {product.forConcern}
                       </span>
                     </div>
@@ -210,15 +226,15 @@ export function AnalysisResults({ results, imageUrl, onReset }: AnalysisResultsP
                     rel="noopener noreferrer"
                     className="ml-3"
                   >
-                    <Button size="sm" variant="outline" className="gap-1.5 h-8">
-                      <ShoppingCart className="w-3 h-3" />
+                    <Button size="sm" variant="outline" className="gap-1.5 h-9 hover:bg-accent hover:text-accent-foreground transition-all">
+                      <ShoppingCart className="w-3.5 h-3.5" />
                       Buy
                     </Button>
                   </a>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground mt-3 text-center">
               Links open on Amazon. Consult a dermatologist for personalized advice.
             </p>
           </div>
