@@ -95,9 +95,18 @@ export function AnalysisResults({ results, imageUrl, onReset }: AnalysisResultsP
   }, [results]);
 
   const overallScore = useMemo(() => {
-    if (results.length === 0) return 0;
-    const sum = results.reduce((acc, r) => acc + (r.ui_score || 0), 0);
-    const avg = sum / results.length;
+    if (!results || results.length === 0) return 0;
+
+    // Filter out any invalid scores and ensure we have valid numbers
+    const validScores = results
+      .map(r => r.ui_score)
+      .filter(score => typeof score === 'number' && !isNaN(score) && score >= 0 && score <= 100);
+
+    if (validScores.length === 0) return 0;
+
+    const sum = validScores.reduce((acc, score) => acc + score, 0);
+    const avg = sum / validScores.length;
+
     return Math.round(avg);
   }, [results]);
 
