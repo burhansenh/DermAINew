@@ -90,11 +90,12 @@ export function ImageUploader({ onImageSelect, isLoading }: ImageUploaderProps) 
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        onClick={() => fileInputRef.current?.click()}
         className={`
-          relative border-2 border-dashed rounded-lg p-12 text-center transition-all duration-200
+          relative border-2 border-dashed rounded-lg p-12 text-center transition-all duration-200 cursor-pointer
           ${isDragging
             ? "border-accent bg-accent/5"
-            : "border-border hover:border-muted-foreground"
+            : "border-border hover:border-accent hover:bg-accent/5"
           }
         `}
       >
@@ -104,10 +105,10 @@ export function ImageUploader({ onImageSelect, isLoading }: ImageUploaderProps) 
           </div>
           <div>
             <p className="text-foreground font-medium mb-1">
-              Drop your photo here
+              Drop your photo here or click to browse
             </p>
             <p className="text-sm text-muted-foreground">
-              or use the buttons below
+              Supports JPG, PNG, and other image formats
             </p>
           </div>
         </div>
