@@ -4,7 +4,7 @@ import { useSkinAnalysis } from "@/hooks/useSkinAnalysis";
 import { Sparkles, Shield, Zap } from "lucide-react";
 
 const Index = () => {
-  const { isLoading, results, imageUrl, analyzeImage, reset } = useSkinAnalysis();
+  const { isLoading, results, imageUrl, error, analyzeImage, reset } = useSkinAnalysis();
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,6 +46,27 @@ const Index = () => {
             {/* Upload Section */}
             <section className="max-w-lg mx-auto mb-16">
               <ImageUploader onImageSelect={analyzeImage} isLoading={isLoading} />
+
+              {/* Error Display */}
+              {error && !isLoading && (
+                <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center mt-0.5">
+                      <span className="text-red-600 dark:text-red-400 text-xs font-bold">!</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">Analysis Failed</p>
+                      <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                      <button
+                        onClick={reset}
+                        className="mt-3 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 underline"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* Features */}

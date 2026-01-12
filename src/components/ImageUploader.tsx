@@ -67,10 +67,16 @@ export function ImageUploader({ onImageSelect, isLoading }: ImageUploaderProps) 
           )}
         </div>
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm rounded-lg">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-muted-foreground">Analyzing your skin...</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-background/95 to-accent/20 backdrop-blur-md rounded-lg">
+            <div className="flex flex-col items-center gap-4 p-6 rounded-xl bg-background/80 border border-accent/30 shadow-lg">
+              <div className="relative">
+                <div className="w-12 h-12 border-3 border-accent/30 rounded-full" />
+                <div className="absolute inset-0 w-12 h-12 border-3 border-accent border-t-transparent rounded-full animate-spin" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-foreground mb-1">Analyzing your skin...</p>
+                <p className="text-xs text-muted-foreground">This may take 10-30 seconds</p>
+              </div>
             </div>
           </div>
         )}
